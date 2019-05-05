@@ -1,0 +1,34 @@
+{
+  "name": "artyuum/router",
+  "description": "Yet another PHP request router.",
+  "keywords": ["php7", "router", "request"],
+  "authors": [
+    {
+      "name": "Artyum Petrov",
+      "email": "artyum@protonmail.com"
+    }
+  ],
+  "license": "MIT",
+  "require": {
+    "php": ">=7.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Artyum\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
