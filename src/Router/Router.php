@@ -2,7 +2,6 @@
 
 namespace Artyum\Router;
 
-use Artyum\Router\Exceptions\DelimiterNotFoundException;
 use Artyum\Router\Exceptions\UnsupportHTTPMethodException;
 use Artyum\Router\Exceptions\WrongArgumentTypeException;
 
@@ -15,7 +14,7 @@ class Router
 {
 
     /**
-     * @var array Should contain an array of allowed HTTP methods.
+     * @var array Should contain an array of HTTP methods supported by the router.
      */
     private $supportedMethods = [
         'GET',
@@ -32,29 +31,14 @@ class Router
     private $basePath;
 
     /**
-     * @var string Should contain the namespace to use for all handlers.
+     * @var RouteGroup Should contain the RouteGroup class instance.
      */
-    private $handlersNamespace;
+    private $group;
 
     /**
-     * @var string Should contain the namespace to use for all middlewares.
+     * @var Route[] Should contain an array of all registered routes.
      */
-    private $middlewaresNamespace;
-
-    /**
-     * @var string Should contain the last registered route(s) prefix.
-     */
-    private $prefix;
-
-    /**
-     * @var string|array Should contain the last registered route(s) middleware(s).
-     */
-    private $middlewares;
-
-    /**
-     * @var array Should contain an array of all registered routes.
-     */
-    private $routes;
+    public $routes;
 
     /**
      * @var string|callable Should contain the handler to execute when no route has been matched.
@@ -62,9 +46,14 @@ class Router
     private $notFoundHandler;
 
     /**
-     * @var array Should contain an array parameters (from the matched route).
+     * @var array Should contain an array of arguments that will be passed to the handler when invoking.
      */
-    private $routeParameters;
+    private $handlerArguments;
+
+    /**
+     * @var Route Should contain the route that matched the current request.
+     */
+    private $matchedRoute;
 
     /**
      * Router constructor.
@@ -77,10 +66,16 @@ class Router
      * @param string $path
      * @return string
      */
-    private function formatRoute(string $path)
+    private function formatPath(string $path)
     {
+        $path = preg_replace('/\s+/','/', $path); // removes whitespaces
         $path = preg_replace('#/+#','/', $path); // removes extra slashes
         $path = rtrim($path, '/'); // removes the trailing slash
+
+        // if the path becomes empty after trimming, we add one slash
+        if (empty($path)) {
+            $path = '/';
+        }
 
         return $path;
     }
@@ -90,9 +85,9 @@ class Router
      *
      * @param string $currentMethod
      * @param string $currentRoute
-     * @return array|false
+     * @return Route|null
      */
-    private function findMatch(string $currentMethod, string $currentRoute)
+    private function findMatch(string $currentMethod, string $currentRoute): ?Route
     {
         /**
          * "The HEAD method is identical to GET except that the server MUST NOT return a message-body in the response."
@@ -103,21 +98,15 @@ class Router
             $currentMethod = 'GET'; // sets the method to "GET" in order to fallback to a matching "GET" route
         }
 
-        // loops though all registered routes and then executes the defined handler if there is a match
+        // loops though all registered routes and search for a match
         foreach ($this->routes as $route) {
             // checks if the current HTTP method corresponds to the registered HTTP method for this route
-            if (is_array($route['method'])) {
-                if (!in_array($currentMethod, $route['method'])) {
-                    continue;
-                }
-            } else {
-                if ($route['method'] !== $currentMethod) {
-                    continue;
-                }
+            if (!in_array($currentMethod, $route->getMethod())) {
+                continue;
             }
 
             // if we have a match
-            if (preg_match_all('#^' . $route['path'] . '$#', $currentRoute, $matches, PREG_OFFSET_CAPTURE)) {
+            if (preg_match_all('#^' . $route->getPath() . '$#', $currentRoute, $matches, PREG_OFFSET_CAPTURE)) {
 
                 // we only take the needed array part
                 $matches = array_slice($matches, 1);
@@ -133,52 +122,68 @@ class Router
                 }, $matches, array_keys($matches));
 
                 // stores the route parameters
-                $this->routeParameters = $routeParameters;
+                //$this->routeParameters = $routeParameters;
 
                 return $route;
             }
         }
 
-        // we does not have a match
-        return false;
+        // we don't have a match
+        return null;
     }
 
     /**
      * Invokes the controller with arguments if any.
      *
-     * @param $handler
+     * @param callable|array $handler
      * @return mixed
      */
     private function invoke($handler)
     {
-        // if it's a callable
-        if (is_callable($handler)) {
-            return call_user_func($handler);
+        // if the first argument is not an array and is an anonymous function or a function name
+        if (!is_array($handler) && is_callable($handler)) {
+            if (!empty($this->handlerArguments)) {
+                return call_user_func($handler, ...$this->handlerArguments); // executes the handler with arguments
+            } else {
+                return call_user_func($handler); // executes the handler without arguments
+            }
         }
 
-        // otherwise, if it's a string
-        $handler    = explode('@', $handler);
-        $class      = $handler[0]; // e.g. HomepageController
-        $method     = $handler[1]; // e.g index
+        // if it's a class
+        if (is_array($handler)) {
+            $class = $handler[0];
+            $method = $handler[1];
 
-        // if arguments are set, we pass them to the handler
-        return call_user_func([new $class(), $method]);
+            if (!empty($this->handlerArguments)) {
+                return call_user_func([new $class(), $method], ...$this->handlerArguments); // executes the method with arguments
+            } else {
+                return call_user_func([new $class(), $method]); // executes the method without arguments
+            }
+        }
     }
 
     /**
-     * Handles not found routes.
-     *
-     * @return bool
+     * Executes the not found handler.
      */
-    private function notFound(): bool
+    private function fireNotFound()
     {
-        // checks if the "not found" handler is set and executes it
+        // if the "not found" handler is set we execute it
         if ($this->notFoundHandler) {
             return $this->invoke($this->notFoundHandler);
         }
 
-        // the "not found" handler is not set, we send the default response (404)
+        // otherwise we send the default response (404)
         return http_response_code(404);
+    }
+
+    /**
+     * Gets the base path.
+     *
+     * @return string|null
+     */
+    public function getBasePath(): ?string
+    {
+        return $this->basePath;
     }
 
     /**
@@ -188,116 +193,7 @@ class Router
      */
     public function setBasePath(string $path)
     {
-        $this->basePath = $path;
-    }
-
-    /**
-     * Sets the namespace for all handlers.
-     *
-     * @param string $namespace
-     */
-    public function setHandlersNamespace(string $namespace)
-    {
-        $this->handlersNamespace = $namespace;
-    }
-
-    /**
-     * Sets the namespace for all middlewares.
-     *
-     * @param string $namespace
-     */
-    public function setMiddlewaresNamespace(string $namespace)
-    {
-        $this->middlewaresNamespace = $namespace;
-    }
-
-    /**
-     * Sets the handler to execute when no route has been matched.
-     *
-     * @param $handler
-     * @throws WrongArgumentTypeException
-     */
-    public function setNotFound($handler)
-    {
-        if (!is_string($handler) && !is_callable($handler)) {
-            throw new WrongArgumentTypeException('$handler argument must be a callable.');
-        }
-        if (is_string($handler)) {
-            $this->notFoundHandler = $this->handlersNamespace . '\\' . $handler;
-        }
-    }
-
-    /**
-     * Groups routes used to set prefix, middlewares or namespace.
-     *
-     * @param array $options
-     * @param callable $handler
-     */
-    public function group(array $options, callable $handler)
-    {
-        // saves the current routes prefix & middlewares
-        $currentPrefix = $this->prefix;
-        $currentMiddlewares = $this->middlewares;
-
-        // sets the new routes prefix
-        $this->prefix .= '/' . $options['prefix'] . '/';
-
-        // sets the before middleware namespace if any
-        if (!empty($options['middlewares']['before'])) {
-            foreach ($options['middlewares']['before'] as &$middleware) {
-                if (!is_callable($middleware)) {
-                    switch (true) {
-                        case $options['middlewares']['namespace']:
-                            $middleware = $options['middlewares']['namespace'] . '\\' . $middleware;
-                            break;
-                        case $this->middlewaresNamespace:
-                            $middleware = $this->middlewaresNamespace . '\\' . $middleware;
-                            break;
-                    }
-                }
-            }
-        }
-
-        // sets the after middleware namespace if any
-        if (!empty($options['middlewares']['after'])) {
-            foreach ($options['middlewares']['after'] as &$middleware) {
-                if (!is_callable($middleware)) {
-                    switch (true) {
-                        case $options['middlewares']['namespace']:
-                            $middleware = $options['middlewares']['namespace'] . '\\' . $middleware;
-                            break;
-                        case $this->middlewaresNamespace:
-                            $middleware = $this->middlewaresNamespace . '\\' . $middleware;
-                            break;
-                    }
-                }
-            }
-        }
-
-        // saves the before middleware
-        if (!empty($options['middlewares']['before'])) {
-            if (!empty($this->middlewares['before'])) {
-                $this->middlewares['before'] = array_merge($this->middlewares['before'], $options['middlewares']['before']);
-            } else {
-                $this->middlewares['before'] = $options['middlewares']['before'];
-            }
-        }
-
-        // saves the after middleware
-        if (!empty($options['middlewares']['after'])) {
-            if (!empty($this->middlewares['after'])) {
-                $this->middlewares['after'] = array_merge($this->middlewares['after'], $options['middlewares']['after']);
-            } else {
-                $this->middlewares['after'] = $options['middlewares']['after'];
-            }
-        }
-
-        // executes the callable
-        call_user_func($handler);
-
-        // rollback back to the previous route prefix & middlewares
-        $this->prefix = $currentPrefix;
-        $this->middlewares = $currentMiddlewares;
+        $this->basePath = '/' . $path . '/';
     }
 
     /**
@@ -305,14 +201,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function get(string $path, $handler, string $name = null)
+    public function get(string $path, $handler): Route
     {
-        $this->addRoute(['GET'], $path, $handler, $name);
+        return $this->addRoute(['GET'], $path, $handler);
     }
 
     /**
@@ -320,14 +215,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function post(string $path, $handler, string $name = null)
+    public function post(string $path, $handler): Route
     {
-        $this->addRoute(['POST'], $path, $handler, $name);
+        return $this->addRoute(['POST'], $path, $handler);
     }
 
     /**
@@ -335,14 +229,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function put(string $path, $handler, string $name = null)
+    public function put(string $path, $handler): Route
     {
-        $this->addRoute(['PUT'], $path, $handler, $name);
+        return $this->addRoute(['PUT'], $path, $handler);
     }
 
     /**
@@ -350,14 +243,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function patch(string $path, $handler, string $name = null)
+    public function patch(string $path, $handler): Route
     {
-        $this->addRoute(['PATCH'], $path, $handler, $name);
+        return $this->addRoute(['PATCH'], $path, $handler);
     }
 
     /**
@@ -365,14 +257,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function delete(string $path, $handler, string $name = null)
+    public function delete(string $path, $handler): Route
     {
-        $this->addRoute(['DELETE'], $path, $handler, $name);
+        return $this->addRoute(['DELETE'], $path, $handler);
     }
 
     /**
@@ -380,14 +271,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function options(string $path, $handler, string $name = null)
+    public function options(string $path, $handler): Route
     {
-        $this->addRoute(['OPTIONS'], $path, $handler, $name);
+        return $this->addRoute(['OPTIONS'], $path, $handler);
     }
 
     /**
@@ -395,14 +285,13 @@ class Router
      *
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function any(string $path, $handler, string $name = null)
+    public function any(string $path, $handler): Route
     {
-        $this->addRoute($this->supportedMethods, $path, $handler, $name);
+        return $this->addRoute($this->supportedMethods, $path, $handler);
     }
 
     /**
@@ -411,101 +300,154 @@ class Router
      * @param array $method
      * @param string $path
      * @param $handler
-     * @param string $name
-     * @throws DelimiterNotFoundException
+     * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws WrongArgumentTypeException
      */
-    public function addRoute(array $method, string $path, $handler, string $name = null)
+    public function addRoute(array $method, string $path, $handler): Route
     {
-        // checks if the passed $controller variable is either a callable or a string
-        if (!is_callable($handler) && !is_string($handler)) {
-            throw new WrongArgumentTypeException('The $controller argument must be a callable or a string');
-        }
-
-        // checks if string contains "@" delimiter
-        if (is_string($handler) && !strpos($handler, '@')) {
-            throw new DelimiterNotFoundException('Unable to find the "@" delimiter in the controller argument.');
-        }
-
-        // converts the HTTP method(s) to uppercase and validates the HTTP method
+        // converts the HTTP methods to uppercase and validates the HTTP method
         $method = array_map('strtoupper', $method);
         if (array_diff($method, $this->supportedMethods)) {
-            throw new UnsupportHTTPMethodException('Unsupported HTTP method(s): ' . implode(', ', $method));
+            throw new UnsupportHTTPMethodException();
         }
 
-        // adds the prefix to the route path if any
-        if ($this->prefix) {
-            $path = $this->prefix . $path;
+        // adds the prefix to the route path
+        if ($this->group && $this->group->getPrefix()) {
+            $path = $this->group->getPrefix() . $path;
         }
 
-        // adds the base path to the route path (if set)
+        // adds the base path to the route path
         if ($this->basePath) {
-            $path = '/' . $this->basePath . '/' . $path;
+            $path = $this->basePath . $path;
         }
 
         // formats the route path
-        $path = $this->formatRoute($path);
+        $path = $this->formatPath($path);
 
-        // sets the namespace handler if any
-        if ($this->handlersNamespace && !is_callable($handler)) {
-            $handler = $this->handlersNamespace . '\\' . $handler;
+        // creates a new route and store its informations
+        $route = new Route();
+        $route
+            ->setPath($path)
+            ->setMethod($method)
+            ->setHandler($handler);
+
+        // adds the route middlewares to the route in any
+        if ($this->group && $this->group->getMiddlewares()) {
+            $route->setMiddlewares($this->group->getMiddlewares());
         }
 
-        // stores the route informations into an array
-        $this->routes[] = [
-            'method'        => $method,
-            'path'          => $path,
-            'middlewares'   => $this->middlewares,
-            'handler'       => $handler,
-            'name'          => $name
-        ];
+        // stores the newly created route into an array of routes
+        $this->routes[] = $route;
+
+        return $route;
+    }
+
+    /**
+     * Maps multiple HTTP methods to one route.
+     *
+     * @param string $path
+     * @return RouteMapper
+     */
+    public function map(string $path): RouteMapper
+    {
+        $mapper = new RouteMapper($path, $this);
+
+        return $mapper;
+    }
+
+    /**
+     * Groups routes used to set prefix, middlewares or namespace.
+     *
+     * @param callable $handler
+     */
+    public function group(callable $handler)
+    {
+        // saves the current group
+        $currentGroup = $this->group;
+
+        // creates a new group and stores its instance
+        $this->group = new RouteGroup($this->group);
+
+        // executes the callable and passes the newly created group instance
+        call_user_func($handler, $this->group);
+
+        // goes back to the previous group
+        $this->group = $currentGroup;
+    }
+
+    /**
+     * Gets the not found handler.
+     *
+     * @return mixed
+     */
+    public function getNotFoundHandler()
+    {
+        return $this->notFoundHandler;
+    }
+
+    /**
+     * Sets the handler to execute when no route has been matched.
+     *
+     * @param $handler
+     * @throws WrongArgumentTypeException
+     */
+    public function setNotFoundHandler($handler)
+    {
+        if (!is_string($handler) && !is_callable($handler)) {
+            throw new WrongArgumentTypeException();
+        }
+        $this->notFoundHandler = $handler;
+    }
+
+    /**
+     * Sets the arguments that will be passed to the handlers when invoking.
+     *
+     * @param mixed ...$arguments
+     */
+    public function setHandlerArguments(...$arguments)
+    {
+        $this->handlerArguments = $arguments;
     }
 
     /**
      * Catches current route/method and runs the defined handler, otherwise returns the notFound() method.
      *
-     * @param null $middlwares
-     * @return mixed|string
+     * @return mixed
      */
-    public function run($middlwares = null)
+    public function dispatch()
     {
-        $currentMethod  = $_SERVER['REQUEST_METHOD'];
-        $currentRoute   = $this->getCurrentRoute();
+        $currentMethod  = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : null;
+        $currentRoute   = $this->formatPath($_SERVER['REQUEST_URI']); // todo: create getRequest() method
 
-        // invokes the before application middleware(s) if any
-        if (isset($middlwares['before'])) {
-            $this->invoke($middlwares['before']);
+        // if there are no routes registered or we are not able to get the needed informations from the request we stop here
+        if (empty($this->routes) || $currentRoute === null) {
+            return $this->fireNotFound();
         }
 
         // checks if we have a match
-        $matchedRoute = $this->findMatch($currentMethod, $currentRoute);
+        $this->matchedRoute = $this->findMatch($currentMethod, $currentRoute);
 
-        // we did not have a match so we execute the notFound() method
-        if (!$matchedRoute) {
-            return $this->notFound();
+        // if we don't have a match, we execute the notFound() method
+        if ($this->matchedRoute === null) {
+            return $this->fireNotFound();
         }
 
         // invokes the matched route before middleware(s) if any
-        if (isset($matchedRoute['middlewares']['before'])) {
-            foreach ($matchedRoute['middlewares']['before'] as $middleware) {
+        if (!empty($this->matchedRoute->getMiddlewares()['before'])) {
+            foreach ($this->matchedRoute->getMiddlewares()['before'] as $middleware) {
                 $this->invoke($middleware);
             }
         }
 
         // invokes the matched route handler
-        $this->invoke($matchedRoute['handler']);
+        $this->invoke($this->matchedRoute->getHandler());
 
         // invokes the matched route after middleware(s) if any
-        if (isset($matchedRoute['middlewares']['after'])) {
-            foreach ($matchedRoute['middlewares']['after'] as $middleware) {
+        if (!empty($this->matchedRoute->getMiddlewares()['after'])) {
+            foreach ($this->matchedRoute->getMiddlewares()['after'] as $middleware) {
                 $this->invoke($middleware);
             }
-        }
-
-        // invokes the after application middleware(s) if any
-        if (isset($middlwares['after'])) {
-            $this->invoke($middlwares['after']);
         }
     }
 
@@ -514,32 +456,55 @@ class Router
      *
      * @return array
      */
-    public function getAllRoutes()
+    public function getRegisteredRoutes(): ?array
     {
         return $this->routes;
     }
 
     /**
-     * The current route (without query string)
-     *
-     * @return string
-     */
-    public function getCurrentRoute()
-    {
-        $route = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $route = $this->formatRoute($route);
-
-        return $route;
-    }
-
-    /**
-     * Gets the matched route parameters.
+     * Gets the matched route.
      *
      * @return array
      */
-    public function getParameters()
+    public function getMatchedRoute(): ?array
     {
-        return $this->routeParameters;
+        /*$route = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); // gets only the route and not query string
+        $route = $this->formatPath($route);*/
+
+        $parameters = null;
+
+        if ($this->matchedRoute) {
+            return [
+                $this->matchedRoute,
+                $parameters
+            ];
+        }
+
+        return null;
+
+        /*
+         * todo: Should return an array containing the matched route, the route parameters and the route name if any
+         */
+    }
+
+    /**
+     * Builds an URL from the route name.
+     *
+     * @param string $name
+     * @param array $parameters
+     * @return string
+     */
+    public function url(string $name, array $parameters = null): ?string
+    {
+        // loops through all registered routes to find a route matching this name
+        foreach ($this->routes as $route) {
+            if ($route->getName() === $name) {
+                return $route->getPath();
+            }
+        }
+
+        // no route found
+        return null;
     }
 
 }
