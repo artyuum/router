@@ -2,7 +2,7 @@
 
 namespace Artyum\Router;
 
-use Artyum\Router\Exceptions\WrongArgumentTypeException;
+use Artyum\Router\Exceptions\InvalidArgumentException;
 
 /**
  * Class Route
@@ -37,13 +37,33 @@ class Route
     private $middlewares;
 
     /**
-     * Route constructor.
+     * @var array Should contain an array of parameters that will be populated when this route matches the current request and contains parameters.
      */
-    public function __construct()
+    private $parameters;
+
+    /**
+     * Route constructor.
+     * @param RouteGroup $group
+     */
+    public function __construct(?RouteGroup $group)
     {
+        // if the group is inside a group, we add the group attributes to the route
+        if ($group) {
+            $this->setName($group->getNamePrefix());
+            $this->setPath($group->getPathPrefix());
+            $this->setMiddlewares($group->getMiddlewares());
+            $this->setMiddlewares($group->getMiddlewares());
+        }
+    }
+
+    private function formatPath()
+    {
+
     }
 
     /**
+     * Gets the route name.
+     *
      * @return mixed
      */
     public function getName(): ?string
@@ -52,17 +72,21 @@ class Route
     }
 
     /**
+     * Sets the route name.
+     *
      * @param string $name
      * @return Route
      */
-    public function setName(string $name): Route
+    public function setName(?string $name): Route
     {
-        $this->name = $name;
+        $this->name = $this->name . $name;
 
         return $this;
     }
 
     /**
+     * Gets the route path.
+     *
      * @return string
      */
     public function getPath(): ?string
@@ -71,17 +95,21 @@ class Route
     }
 
     /**
+     * Sets the route path.
+     *
      * @param string $path
      * @return Route
      */
-    public function setPath(string $path): Route
+    public function setPath(?string $path): Route
     {
-        $this->path = $path;
+        $this->path = Helper::formatPath($this->path . '/' . $path);
 
         return $this;
     }
 
     /**
+     * Gets the route method.
+     *
      * @return array
      */
     public function getMethod(): ?array
@@ -90,6 +118,8 @@ class Route
     }
 
     /**
+     * Sets the route method.
+     *
      * @param array $method
      * @return Route
      */
@@ -101,6 +131,8 @@ class Route
     }
 
     /**
+     * Gets the route handler.
+     *
      * @return string|callable
      */
     public function getHandler()
@@ -109,15 +141,17 @@ class Route
     }
 
     /**
+     * Sets the route handler.
+     *
      * @param mixed $handler
      * @return Route
-     * @throws WrongArgumentTypeException
+     * @throws InvalidArgumentException
      */
     public function setHandler($handler): Route
     {
         // if a wrong argument type is passed
         if (!is_callable($handler) && !is_array($handler)) {
-            throw new WrongArgumentTypeException();
+            throw new InvalidArgumentException();
         }
 
         $this->handler = $handler;
@@ -126,6 +160,8 @@ class Route
     }
 
     /**
+     * Gets the route middlewares.
+     *
      * @return array
      */
     public function getMiddlewares(): ?array
@@ -134,6 +170,25 @@ class Route
     }
 
     /**
+     * Sets the route middlewares.
+     *
+     * @param array $middlewares
+     * @return Route
+     */
+    public function setMiddlewares(?array $middlewares): Route
+    {
+        if (!empty($this->middlewares)) {
+            $this->middlewares = array_merge($this->middlewares, $middlewares);
+        } else {
+            $this->middlewares = $middlewares;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Sets the before route middlewares.
+     *
      * @param array $middlewares
      * @return Route
      */
@@ -149,6 +204,8 @@ class Route
     }
 
     /**
+     * Sets the after route middlewares.
+     *
      * @param array $middlewares
      * @return Route
      */
@@ -164,18 +221,55 @@ class Route
     }
 
     /**
-     * @param array $middlewares
+     * Gets the route parameters.
+     *
+     * @return array
+     */
+    public function getParameters(): ?array
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * Sets the route parameters.
+     *
+     * @param array $parameters
      * @return Route
      */
-    public function setMiddlewares(array $middlewares): Route
+    public function setParameters(?array $parameters): Route
     {
-        if (!empty($this->middlewares)) {
-            $this->middlewares = array_merge($this->middlewares, $middlewares);
-        } else {
-            $this->middlewares = $middlewares;
-        }
+        $this->parameters = $parameters;
 
         return $this;
+    }
+
+    /**
+     * Adds contraints on placeholders.
+     *
+     * @param array $placeholders
+     * @return Route
+     */
+    public function where(array $placeholders): Route
+    {
+        $search = [];
+        $replace = [];
+
+        // loops through all parameters and stores their name & type
+        foreach ($placeholders as $name => $type) {
+
+            // if the placeholder is marked as optional
+            if (strpos($this->getPath(), '{' . $name . '?}') !== false) {
+                $search[]   = '{' . $name . '?}';
+                $replace[]  = '(?<' . $name . '>' . $type . ')?';
+            } else {
+                $search[]   = '{' . $name . '}';
+                $replace[]  = '(?<' . $name . '>' . $type . ')';
+            }
+        }
+
+        return $this->setPath(
+            str_replace($search, $replace, $this->getPath())
+        );
     }
 
 }

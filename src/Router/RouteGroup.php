@@ -10,9 +10,14 @@ class RouteGroup
 {
 
     /**
-     * @var string Should contain the prefix that will be added to the routes uri.
+     * @var string Should contain the name prefix that will be added to the routes name.
      */
-    private $prefix;
+    private $namePrefix;
+
+    /**
+     * @var string Should contain the path prefix that will be added to the routes path.
+     */
+    private $pathPrefix;
 
     /**
      * @var array Should contain an array of routes middlewares.
@@ -25,31 +30,55 @@ class RouteGroup
      */
     public function __construct(RouteGroup $group = null)
     {
+        // if it's a nested group, we get the parent group attributes
         if ($group) {
-            $this->setPrefix($group->getPrefix());
+            $this->setNamePrefix($group->getNamePrefix());
+            $this->setPathPrefix($group->getPathPrefix());
             $this->setMiddlewares($group->getMiddlewares());
         }
     }
 
     /**
-     * Gets the routes prefix.
+     * Gets the routes name prefix.
      *
      * @return string
      */
-    public function getPrefix(): ?string
+    public function getNamePrefix(): ?string
     {
-        return $this->prefix;
+        return $this->namePrefix;
     }
 
     /**
-     * Sets the routes prefix.
+     * Sets the routes name prefix.
      *
-     * @param string $prefix
+     * @param string $namePrefix
      * @return RouteGroup
      */
-    public function setPrefix(?string $prefix): RouteGroup
+    public function setNamePrefix(string $namePrefix): RouteGroup
     {
-        $this->prefix = '/' . $prefix . '/';
+        $this->namePrefix = $namePrefix;
+        return $this;
+    }
+
+    /**
+     * Gets the routes path prefix.
+     *
+     * @return string
+     */
+    public function getPathPrefix(): ?string
+    {
+        return $this->pathPrefix;
+    }
+
+    /**
+     * Sets the routes path prefix.
+     *
+     * @param string $pathPrefix
+     * @return RouteGroup
+     */
+    public function setPathPrefix(?string $pathPrefix): RouteGroup
+    {
+        $this->pathPrefix = '/' . $pathPrefix . '/';
 
         return $this;
     }
@@ -62,6 +91,23 @@ class RouteGroup
     public function getMiddlewares(): ?array
     {
         return $this->middlewares;
+    }
+
+    /**
+     * Sets the routes middlewares.
+     *
+     * @param array $middlewares
+     * @return RouteGroup
+     */
+    public function setMiddlewares(?array $middlewares): RouteGroup
+    {
+        if (!empty($this->middlewares)) {
+            $this->middlewares = array_merge($this->middlewares, $middlewares);
+        } else {
+            $this->middlewares = $middlewares;
+        }
+
+        return $this;
     }
 
     /**
@@ -88,23 +134,6 @@ class RouteGroup
         return $this->setMiddlewares([
             'after' => $middlewares
         ]);
-    }
-
-    /**
-     * Sets the routes middlewares.
-     *
-     * @param array $middlewares
-     * @return RouteGroup
-     */
-    public function setMiddlewares(?array $middlewares): RouteGroup
-    {
-        if (!empty($this->middlewares)) {
-            $this->middlewares = array_merge($this->middlewares, $middlewares);
-        } else {
-            $this->middlewares = $middlewares;
-        }
-
-        return $this;
     }
 
 }

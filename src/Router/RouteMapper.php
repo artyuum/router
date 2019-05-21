@@ -2,8 +2,6 @@
 
 namespace Artyum\Router;
 
-use phpDocumentor\Reflection\Types\Callable_;
-
 /**
  * Class RouteMapper
  * @package Artyum\Router
@@ -22,11 +20,6 @@ class RouteMapper
     private $router;
 
     /**
-     * @var Route Should contain the last register Route instance.
-     */
-    private $lastRegisteredRoute;
-
-    /**
      * RouteMapper constructor.
      * @param string $path
      * @param Router $router
@@ -37,51 +30,107 @@ class RouteMapper
         $this->router = $router;
     }
 
+    /**
+     * Registers a "GET" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function get(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->get($this->path, $handler);
+        $this->router->get($this->path, $handler);
 
         return $this;
     }
 
+    /**
+     * Registers a "POST" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function post(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->post($this->path, $handler);
+        $this->router->post($this->path, $handler);
 
         return $this;
     }
 
+    /**
+     * Registers a "PUT" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function put(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->put($this->path, $handler);
+        $this->router->put($this->path, $handler);
 
         return $this;
     }
 
+    /**
+     * Registers a "PATCH" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function patch(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->patch($this->path, $handler);
+        $this->router->patch($this->path, $handler);
 
         return $this;
     }
 
+    /**
+     * Registers a "DELETE" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function delete(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->delete($this->path, $handler);
+        $this->router->delete($this->path, $handler);
 
         return $this;
     }
 
+    /**
+     * Registers a "OPTIONS" route.
+     *
+     * @param array $handler
+     * @return RouteMapper
+     * @throws Exceptions\UnsupportHTTPMethodException
+     * @throws Exceptions\InvalidArgumentException
+     */
     public function options(array $handler): RouteMapper
     {
-        $this->lastRegisteredRoute = $this->router->options($this->path, $handler);
+        $this->router->options($this->path, $handler);
 
         return $this;
     }
 
-    public function withAttributes(Callable $callback): RouteMapper
+    /**
+     * Gets the last registered Route object.
+     *
+     * @param callable $callback
+     * @return RouteMapper
+     */
+    public function withAttributes(callable $callback): RouteMapper
     {
-        call_user_func($callback, $this->lastRegisteredRoute);
+        // gets the last element from the routes array
+        $lastRegisteredRoute = end(array_values($this->router->getRegisteredRoutes()));
+        call_user_func($callback, $lastRegisteredRoute);
 
         return $this;
     }
