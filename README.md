@@ -2,6 +2,8 @@
 Yet another PHP router.      
 Some parts of this router like methods name or functionalities are inspired from other existing routers.
 
+**22/05/2019: This router is not fully functional yet and is under development. A stable version will be released soon.**
+
 ### Features
 * RESTFul router.
 * Shipped with Symfony Http Foundation.
@@ -20,10 +22,11 @@ Some parts of this router like methods name or functionalities are inspired from
 * [Route parameters](#)
 * [Named routes](#)
 * [Route groups](#)
-    * [Route prefixes](#)
+    * [Route path prefixes](#)
     * [Route name prefixes](#)
     * [Route middlewares](#)
 * [Route mapping](#)
+* [Route not found](#)
  
 #### HTTP methods
 The router supports the following HTTP methods:
@@ -61,10 +64,7 @@ $router->get('/', ['HomepageController::class', 'index']);
 #### Route parameters
 Route parameters can be set using placeholders or pure regexes ([PCRE](https://courses.cs.washington.edu/courses//cse154/14sp/cheat-sheets/php-regex-cheat-sheet.pdf)) as follow:
 ```php
-$router->get('/profile/{username}', $handler); // will be converted to /profile/(\w+) and will match any word of at least one letter, number or _
-```
-```php
-$router->get('/profile/?<username>(\w+)', $handler); // will match /profile/<any word of at least one letter, number or _>
+$router->get('/profile/{username}', $handler); // will be converted to /profile/?<username>(\w+) and will match any word of at least one letter, number or _
 ```
 When using pure regex, it is important to [give a name to the group](https://www.regular-expressions.info/named.html) (like above). Otherwise, the router won't be able get the parameters from the URL and it also won't be able to properly build an URL to a route using the `url()` method. 
 
@@ -88,22 +88,23 @@ With the returned object, you will be able to access all methods of this object 
 **Example :**
 
 ```php
-// registers a route named "homepage"
-$router->get('/', 'HomepageController@index')->setName('homepage');
+$router->get('/', 'HomepageController@index')->setName('homepage'); // registers a route named "homepage"
+$router->get('/users/{id}/delete', 'UserController@delete')->setName('user.delete'); // registers a route named "user.delete"
 
 // gets the Route instance of the "homepage" route
 $route = $route->getRoute('homepage');
 
-// builds an url to this route
+// builds an url to a route
 $url = $router->url('homepage'); // /home
 
-$router->redirect('/homepage', $code = 301|302); // will redirect the user to the "homepage" route with one of the following codes : 301, 302.
+// buiilds an url to a route with parameters
+$url = $router->url('user.delete', ['id' => 1]); // /users/1/delete
 ```
 
 ### Route groups
-You can group routes using the `group()` method. This gives you the ability to set a prefix or middlewares for all the routes inside the group.
+You can group routes using the `group()` method. This gives you the ability to set a prefixes or middlewares for all the routes inside the group.
 
-#### Route prefix
+#### Route path prefix
 **Example:**
 
 ```php
@@ -113,12 +114,14 @@ $router->get('/', 'HomepageController@index'); // will match "/"
 // admin
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
-    $group->setPrefix('/admin');
+    $group->setPathPrefix('/admin');
     $router->get('/', 'AdminController@index'); // will match "/admin"
 });
 ```
 
-The `group()` method can also be nested, as follow:
+#### Route name prefix
+**Example:**
+
 ```php
 // homepage
 $router->get('/', 'HomepageController@index'); // will match "/"
@@ -126,17 +129,8 @@ $router->get('/', 'HomepageController@index'); // will match "/"
 // admin
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
-    $group->setPrefix('/admin');
-    $router->get('/', 'AdminController@index'); // will match "/admin"
-    
-    $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
-    {
-        $group->setPrefix('/users');
-    
-        $router->get('/', 'UserController::class', 'index'); // will match "/admin/users"
-        $router->post('/add/', 'UserController::class', 'create'); // will match "/admin/users/add/"
-        $router->put('/:num/edit', 'UserController::class', 'edit'); // will match "/admin/users/<number>/edit"
-    });
+    $group->setNamePrefix('admin.');
+    $router->get('/', 'AdminController@index')->setName('homepage'); // name will be "admin.homepage" 
 });
 ```
 
@@ -150,8 +144,8 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
         'after' => ['LoggingMiddleware::class']
     ]);
     
-    $router->get('/edit/:num', 'AdminController@wallpapers'); // will match "/user/edit/<number>"
-    $router->post('/add/:num', 'AdminController@wallpaper'); // will match "/user/add/<number>"
+    $router->get('/edit/{id}', 'AdminController@wallpapers'); // will match "/user/edit/<number>"
+    $router->post('/add/{id}', 'AdminController@wallpaper'); // will match "/user/add/<number>"
 });
 ```
 If a request matches one of the registered routes, the router will do the following process in this order:
@@ -175,9 +169,9 @@ These are simply wrappers around the `setMiddlewares()` method.
 You can map a single path to multiple HTTP methods with differents handler, as follow:
 ```php
 $router->map('/users/:num')
-    ->put([UserController::class], 'replace')
-    ->patch([UserController::class], 'update')
-    ->delete([UserController::class], 'delete');
+    ->put([UserController::class])
+    ->patch([UserController::class])
+    ->delete([UserController::class]);
 ```
 
 Using the `withAttributes()` method, you will be able to get access to the Route object in order to set additional attributes to the route:
@@ -200,27 +194,28 @@ $router->map('/users/:num')
     });
 ```
 
-It's also possible to add mapped routes to a group, that way you can set the middlewares once:
+It's also possible to add mapped routes to a group, that way you can set the middlewares for all routes that is inside the group and name prefix too:
 ```php
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
     $group->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
+    $group->setNamePrefix('user.');
 
     $router->map('/users/:num')
         ->put([UserController::class], 'replace')->withAttributes(function(\Artyum\Router\Route $route) {
-            $route->setName('user.replace');
+            $route->setName('replace');
          })
         ->patch([UserController::class], 'update')->withAttributes(function(\Artyum\Router\Route $route) {
-            $route->setName('user.update');
+            $route->setName('update');
         })
         ->delete([UserController::class], 'delete')->withAttributes(function(\Artyum\Router\Route $route) {
-            $route->setName('user.delete');
+            $route->setName('delete');
         });
 });
 ```
 
 ### Route not found
-By default, when the request doesn't match any registered routes, the `dispatch()` method will throw a "NotFound" exception. You can change this behavior by registering an handler. The registered handler will be executed with the same arguments as controllers or middlewares. That way, you will be able to easily access the request and response object.
+By default, when the request doesn't match any registered routes, the `dispatch()` method will throw a "NotFoundException". You can change this behavior by registering an handler. The registered handler will be executed with the same arguments as controllers or middlewares. That way, you will be able to easily access the request and response object.
 ```php
 setNotFoundHandler(callable $handler);
 ```
