@@ -268,7 +268,7 @@ class Router
     /**
      * Registers a route.
      *
-     * @param array $mtoethod
+     * @param array $method
      * @param string $path
      * @param $handler
      * @return Route

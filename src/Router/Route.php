@@ -51,8 +51,8 @@ class Route
         if ($group) {
             $this->setName($group->getNamePrefix());
             $this->setPath($group->getPathPrefix());
-            $this->setMiddlewares($group->getMiddlewares());
-            $this->setMiddlewares($group->getMiddlewares());
+            $this->addMiddlewares($group->getMiddlewares());
+            $this->addMiddlewares($group->getMiddlewares());
         }
     }
 
@@ -175,7 +175,7 @@ class Route
      * @param array $middlewares
      * @return Route
      */
-    public function setMiddlewares(?array $middlewares): Route
+    public function addMiddlewares(?array $middlewares): Route
     {
         if (!empty($this->middlewares)) {
             $this->middlewares = array_merge($this->middlewares, $middlewares);
@@ -192,7 +192,7 @@ class Route
      * @param array $middlewares
      * @return Route
      */
-    public function setBeforeMiddlewares(array $middlewares): Route
+    public function addBeforeMiddlewares(array $middlewares): Route
     {
         if (!empty($this->middlewares['before'])) {
             $this->middlewares = array_merge($this->middlewares['before'], $middlewares);
@@ -209,7 +209,7 @@ class Route
      * @param array $middlewares
      * @return Route
      */
-    public function setAfterMiddlewares(array $middlewares): Route
+    public function addAfterMiddlewares(array $middlewares): Route
     {
         if (!empty($this->middlewares['after'])) {
             $this->middlewares = array_merge($this->middlewares['after'], $middlewares);

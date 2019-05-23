@@ -33,12 +33,12 @@ class RouteMapper
     /**
      * Registers a "GET" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function get(array $handler): RouteMapper
+    public function get($handler): RouteMapper
     {
         $this->router->get($this->path, $handler);
 
@@ -48,12 +48,12 @@ class RouteMapper
     /**
      * Registers a "POST" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function post(array $handler): RouteMapper
+    public function post($handler): RouteMapper
     {
         $this->router->post($this->path, $handler);
 
@@ -63,12 +63,12 @@ class RouteMapper
     /**
      * Registers a "PUT" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function put(array $handler): RouteMapper
+    public function put($handler): RouteMapper
     {
         $this->router->put($this->path, $handler);
 
@@ -78,12 +78,12 @@ class RouteMapper
     /**
      * Registers a "PATCH" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function patch(array $handler): RouteMapper
+    public function patch($handler): RouteMapper
     {
         $this->router->patch($this->path, $handler);
 
@@ -93,12 +93,12 @@ class RouteMapper
     /**
      * Registers a "DELETE" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function delete(array $handler): RouteMapper
+    public function delete($handler): RouteMapper
     {
         $this->router->delete($this->path, $handler);
 
@@ -108,12 +108,12 @@ class RouteMapper
     /**
      * Registers a "OPTIONS" route.
      *
-     * @param array $handler
+     * @param $handler
      * @return RouteMapper
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
-    public function options(array $handler): RouteMapper
+    public function options($handler): RouteMapper
     {
         $this->router->options($this->path, $handler);
 
@@ -126,10 +126,13 @@ class RouteMapper
      * @param callable $callback
      * @return RouteMapper
      */
-    public function withAttributes(callable $callback): RouteMapper
+    public function addAttributes(callable $callback): RouteMapper
     {
+        $registeredRoute = $this->router->getRegisteredRoutes();
+
         // gets the last element from the routes array
-        $lastRegisteredRoute = end(array_values($this->router->getRegisteredRoutes()));
+        $lastRegisteredRoute = end($registeredRoute);
+
         call_user_func($callback, $lastRegisteredRoute);
 
         return $this;

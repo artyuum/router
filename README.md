@@ -64,7 +64,7 @@ $router->get('/', ['HomepageController::class', 'index']);
 #### Route parameters
 Route parameters can be set using placeholders or pure regexes ([PCRE](https://courses.cs.washington.edu/courses//cse154/14sp/cheat-sheets/php-regex-cheat-sheet.pdf)) as follow:
 ```php
-$router->get('/profile/{username}', $handler); // will be converted to /profile/?<username>(\w+) and will match any word of at least one letter, number or _
+$router->get('/profile/{username}', $handler); // will be converted to /profile/?<username>(\w+)
 ```
 When using pure regex, it is important to [give a name to the group](https://www.regular-expressions.info/named.html) (like above). Otherwise, the router won't be able get the parameters from the URL and it also won't be able to properly build an URL to a route using the `url()` method. 
 
@@ -97,7 +97,7 @@ $route = $route->getRoute('homepage');
 // builds an url to a route
 $url = $router->url('homepage'); // /home
 
-// buiilds an url to a route with parameters
+// builds an url to a route with parameters
 $url = $router->url('user.delete', ['id' => 1]); // /users/1/delete
 ```
 
@@ -139,7 +139,7 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 ```php
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
-    $group->setMiddlewares([
+    $group->addMiddlewares([
         'before' => ['RateLimitMiddleware::class', 'AuthMiddleware::class'],
         'after' => ['LoggingMiddleware::class']
     ]);
@@ -163,15 +163,15 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 });
 ```
 
-These are simply wrappers around the `setMiddlewares()` method.
+These are simply wrappers around the `addMiddlewares()` method.
 
 ### Route mapping
 You can map a single path to multiple HTTP methods with differents handler, as follow:
 ```php
 $router->map('/users/:num')
-    ->put([UserController::class])
-    ->patch([UserController::class])
-    ->delete([UserController::class]);
+    ->put($handler)
+    ->patch($handler)
+    ->delete($handler);
 ```
 
 Using the `withAttributes()` method, you will be able to get access to the Route object in order to set additional attributes to the route:
@@ -202,13 +202,13 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
     $group->setNamePrefix('user.');
 
     $router->map('/users/:num')
-        ->put([UserController::class], 'replace')->withAttributes(function(\Artyum\Router\Route $route) {
+        ->put($handler)->withAttributes(function(\Artyum\Router\Route $route) {
             $route->setName('replace');
          })
-        ->patch([UserController::class], 'update')->withAttributes(function(\Artyum\Router\Route $route) {
+        ->patch($handler)->withAttributes(function(\Artyum\Router\Route $route) {
             $route->setName('update');
         })
-        ->delete([UserController::class], 'delete')->withAttributes(function(\Artyum\Router\Route $route) {
+        ->delete($handler)->withAttributes(function(\Artyum\Router\Route $route) {
             $route->setName('delete');
         });
 });
@@ -223,7 +223,7 @@ setNotFoundHandler(callable $handler);
 **Example:**
 ```php
 // using a function name
-$router->setNotFoundHandler('myFunction');
+$router->setNotFoundHandler($handler);
 
 // using an anonymous function
 $router->setNotFoundHandler(function(\Symfony\Component\HttpFoundation\Request $request, \Symfony\Component\HttpFoundation\Response $response) {
