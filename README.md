@@ -1,8 +1,10 @@
 # router
-Yet another PHP router.      
-Some parts of this router like methods name or functionalities are inspired from other existing routers.
 
-**22/05/2019: This router is not fully functional yet and is under development. A stable version will be released soon.**
+<p align="center">
+    <img src="https://raw.githubusercontent.com/artyuum/router/master/hello-world.png" alt="hello world" data-canonical-src="https://gyazo.com/eb5c5741b6a9a16c692170a41a49c858.png" width="600">
+</p>
+
+**Note: This router is not fully functional yet and is under development. A stable version will be released soon.**
 
 ### Features
 * RESTFul router.
