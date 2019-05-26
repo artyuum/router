@@ -367,7 +367,7 @@ class Router
         // checks if we have a match
         $this->matchedRoute = $this->findMatch($currentHTTPMethod, $currentPath);
 
-        // if we don't have a match, we executes the not found handler if set, otherwise we throw an exception
+        // if we don't have a match we execute the not found handler if set, otherwise we throw an exception
         if ($this->matchedRoute === null) {
             if ($this->notFoundHandler) {
                 return $this->invoke($this->notFoundHandler);
@@ -380,7 +380,7 @@ class Router
         $this->request->attributes->add($this->matchedRoute->getParameters());
 
         // invokes the matched route before middleware(s) if any
-        if (!empty($this->matchedRoute->getMiddlewares()['before'])) { // todo: add support for invoking middlewares
+        if (!empty($this->matchedRoute->getMiddlewares()['before'])) {
             foreach ($this->matchedRoute->getMiddlewares()['before'] as $middleware) {
                 if (is_callable($middleware)) {
                     $this->invoke($middleware);
@@ -394,7 +394,7 @@ class Router
         $this->invoke($this->matchedRoute->getHandler());
 
         // invokes the matched route after middleware(s) if any
-        if (!empty($this->matchedRoute->getMiddlewares()['after'])) { // todo: add support for invoking middlewares
+        if (!empty($this->matchedRoute->getMiddlewares()['after'])) {
             foreach ($this->matchedRoute->getMiddlewares()['after'] as $middleware) {
                 if (is_callable($middleware)) {
                     $this->invoke($middleware);
