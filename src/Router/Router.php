@@ -83,7 +83,7 @@ class Router
         // loops though all registered routes and search for a match
         foreach ($this->routes as $route) {
             // checks if the current HTTP method corresponds to the registered HTTP method for this route
-            if (!in_array($currentMethod, $route->getMethod())) {
+            if (!in_array($currentMethod, $route->getMethods())) {
                 continue;
             }
 
@@ -122,18 +122,17 @@ class Router
     }
 
     /**
-     * Invokes the controller with arguments if any.
+     * Invokes the handler.
      *
      * @param callable|array $handler
-     * @param mixed ...$additionalArguments
      * @return mixed
      * @throws InvalidArgumentException
      */
-    private function invoke($handler, ...$additionalArguments)
+    private function invoke($handler)
     {
         // if the first argument is not an array and is an anonymous function or a function name
         if (!is_array($handler) && is_callable($handler)) {
-            return call_user_func($handler, $this->request, $this->response, $additionalArguments);
+            return call_user_func($handler, $this->request, $this->response);
         }
 
         // if it's a class
@@ -141,7 +140,7 @@ class Router
             $class = $handler[0];
             $method = $handler[1];
 
-            return call_user_func([new $class(), $method], $this->request, $this->response, $additionalArguments);
+            return call_user_func([new $class(), $method], $this->request, $this->response);
         }
 
         throw new InvalidArgumentException();
@@ -268,18 +267,18 @@ class Router
     /**
      * Registers a route.
      *
-     * @param array $method
+     * @param array $methods
      * @param string $path
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function addRoute(array $method, string $path, $handler): Route
+    public function addRoute(array $methods, string $path, $handler): Route
     {
         // converts the HTTP methods to uppercase and validates the HTTP method
-        $method = array_map('strtoupper', $method);
-        if (array_diff($method, $this->supportedMethods)) {
+        $methods = array_map('strtoupper', $methods);
+        if (array_diff($methods, $this->supportedMethods)) {
             throw new UnsupportHTTPMethodException();
         }
 
@@ -290,7 +289,7 @@ class Router
         $route = new Route($this->group);
         $route
             ->setPath($path)
-            ->setMethod($method)
+            ->setMethods($methods)
             ->setHandler($handler);
 
         // stores the newly created route into an array of Route

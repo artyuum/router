@@ -19,16 +19,21 @@
 * Supports caching/compiled routes.
 * Supports custom handler for 404.
 
+### Installation
+```
+composer require artyuum/router:dev-master
+```
+
 ### Documentation
-* [Supported HTTP Methods](#)
-* [Route parameters](#)
-* [Named routes](#)
-* [Route groups](#)
-    * [Route path prefixes](#)
-    * [Route name prefixes](#)
-    * [Route middlewares](#)
-* [Route mapping](#)
-* [Route not found](#)
+* [Supported HTTP Methods](#HTTP-methods)
+* [Route parameters](#Route-parameters)
+* [Named routes](#Named-routes)
+* [Route groups](#Route-groups)
+    * [Route path prefixing](#Route-path-prefixing)
+    * [Route name prefixing](#Route-name-prefixing)
+    * [Route middlewares](#Route-middlewares)
+* [Route mapping](#Route-mapping)
+* [Route not found](#Route-not-found)
  
 #### HTTP methods
 The router supports the following HTTP methods:
@@ -106,7 +111,7 @@ $url = $router->url('user.delete', ['id' => 1]); // /users/1/delete
 ### Route groups
 You can group routes using the `group()` method. This gives you the ability to set a prefixes or middlewares for all the routes inside the group.
 
-#### Route path prefix
+#### Route path prefixing
 **Example:**
 
 ```php
@@ -121,7 +126,7 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 });
 ```
 
-#### Route name prefix
+#### Route name prefixing
 **Example:**
 
 ```php

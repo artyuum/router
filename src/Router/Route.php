@@ -24,7 +24,7 @@ class Route
     /**
      * @var array Should contain an array of HTTP methods supported by this route.
      */
-    private $method;
+    private $methods;
 
     /**
      * @var string|callable Should contain the route handler.
@@ -112,20 +112,20 @@ class Route
      *
      * @return array
      */
-    public function getMethod(): ?array
+    public function getMethods(): ?array
     {
-        return $this->method;
+        return $this->methods;
     }
 
     /**
      * Sets the route method.
      *
-     * @param array $method
+     * @param array $methods
      * @return Route
      */
-    public function setMethod(array $method): Route
+    public function setMethods(array $methods): Route
     {
-        $this->method = $method;
+        $this->methods = $methods;
 
         return $this;
     }
