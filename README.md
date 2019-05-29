@@ -54,7 +54,7 @@ You can also register a route that matches more than one HTTP method:
 $router->addRoute(['GET', 'POST'], '/', 'myController');
 ```
 
-The `$handler` argument must be either a callable or array:
+The `$handler` argument must be either a callable or an array (if it's a class):
 ```php
 // using an anonymous function
 $router->get('/', function(\Symfony\Component\HttpFoundation\Request $request, \Symfony\Component\HttpFoundation\Response $response) {
@@ -161,6 +161,8 @@ If a request matches one of the registered routes, the router will do the follow
 3. In third, the matched route controller will be executed.
 4. And finally, the `handle()` method from the `LoggingMiddleware` class will be executed. 
 
+The router will automatically executes the `handle()` method from the middleware class so you don't need to specify it.
+
 You can also add before/after route middlewares to a group as follow:
 ```php
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
@@ -184,17 +186,17 @@ $router->map('/users/:num')
 Using the `withAttributes()` method, you will be able to get access to the Route object in order to set additional attributes to the route:
 ```php
 $router->map('/users/:num')
-    ->put([UserController::class], 'replace')->withAttributes(function(\Artyum\Router\Route $route) {
+    ->put($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.replace')
             ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
      })
-    ->patch([UserController::class], 'update')->withAttributes(function(\Artyum\Router\Route $route) {
+    ->patch($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.update')
             ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
     })
-    ->delete([UserController::class], 'delete')->withAttributes(function(\Artyum\Router\Route $route) {
+    ->delete($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.delete')
             ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
@@ -238,7 +240,7 @@ $router->setNotFoundHandler(function(\Symfony\Component\HttpFoundation\Request $
 });
 
 // using a class
-$router->setNotFoundHandler([ErrorController::class, 'notFound']);
+$router->setNotFoundHandler($handler);
 ```
 
 ## Contributing
