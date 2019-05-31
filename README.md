@@ -9,7 +9,7 @@
 ### Features
 
 * RESTFul router.
-* Shipped with [Symfony Http Foundation]([https://symfony.com/components/HttpFoundation](https://symfony.com/components/HttpFoundation)).
+* Shipped with [Symfony Http Foundation](https://symfony.com/components/HttpFoundation).
 * Supports named route parameters & placeholders.
 * Supports route groups (and nested groups).
 * Supports named routes (with reverse routing).
@@ -84,13 +84,13 @@ $router->get('/', 'myFunction');
 $router->get('/', ['HomepageController::class', 'index']);
 ```
 
-Once a request matches one of the registered routes, the router will executes the handler and passes two arguments in the following order :
+Once a request matches one of the registered routes, the router will execute the handler and passes two arguments in the following order :
 
 1. `Symfony\Component\HttpFoundation\Request $request`
 
 2. `Symfony\Component\HttpFoundation\Response $response`
 
-These arguments are part of the [Symfony HTTP Foundation]([https://symfony.com/components/HttpFoundation](https://symfony.com/components/HttpFoundation)) component and will help you to get more informations about the request and easily build and send a response to the client. Feel free to [read the docs]([https://symfony.com/components/HttpFoundation](https://symfony.com/components/HttpFoundation) to get more informations about its usage.
+These arguments are part of the [Symfony HTTP Foundation](https://symfony.com/components/HttpFoundation) component and will help you to get more informations about the request and easily build and send a response to the client. Feel free to [read the docs](https://symfony.com/components/HttpFoundation) to get more informations about its usage.
 
 #### Route parameters
 
