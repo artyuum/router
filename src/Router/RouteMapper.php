@@ -10,9 +10,9 @@ class RouteMapper
 {
 
     /**
-     * @var string Should contain the path to match for the routes.
+     * @var string Should contain the uri to match for the routes.
      */
-    private $path;
+    private $uri;
 
     /**
      * @var Router Should contain the Router class instance.
@@ -21,12 +21,12 @@ class RouteMapper
 
     /**
      * RouteMapper constructor.
-     * @param string $path
+     * @param string $uri
      * @param Router $router
      */
-    public function __construct(string $path, Router $router)
+    public function __construct(string $uri, Router $router)
     {
-        $this->path = $path;
+        $this->uri = $uri;
         $this->router = $router;
     }
 
@@ -40,7 +40,7 @@ class RouteMapper
      */
     public function get($handler): RouteMapper
     {
-        $this->router->get($this->path, $handler);
+        $this->router->get($this->uri, $handler);
 
         return $this;
     }
@@ -55,7 +55,7 @@ class RouteMapper
      */
     public function post($handler): RouteMapper
     {
-        $this->router->post($this->path, $handler);
+        $this->router->post($this->uri, $handler);
 
         return $this;
     }
@@ -70,7 +70,7 @@ class RouteMapper
      */
     public function put($handler): RouteMapper
     {
-        $this->router->put($this->path, $handler);
+        $this->router->put($this->uri, $handler);
 
         return $this;
     }
@@ -85,7 +85,7 @@ class RouteMapper
      */
     public function patch($handler): RouteMapper
     {
-        $this->router->patch($this->path, $handler);
+        $this->router->patch($this->uri, $handler);
 
         return $this;
     }
@@ -100,7 +100,7 @@ class RouteMapper
      */
     public function delete($handler): RouteMapper
     {
-        $this->router->delete($this->path, $handler);
+        $this->router->delete($this->uri, $handler);
 
         return $this;
     }
@@ -115,7 +115,7 @@ class RouteMapper
      */
     public function options($handler): RouteMapper
     {
-        $this->router->options($this->path, $handler);
+        $this->router->options($this->uri, $handler);
 
         return $this;
     }

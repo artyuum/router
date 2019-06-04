@@ -17,9 +17,9 @@ class Route
     private $name;
 
     /**
-     * @var string Should contain the route path.
+     * @var string Should contain the route uri.
      */
-    private $path;
+    private $uri;
 
     /**
      * @var array Should contain an array of HTTP methods supported by this route.
@@ -50,15 +50,10 @@ class Route
         // if the group is inside a group, we add the group attributes to the route
         if ($group) {
             $this->setName($group->getNamePrefix());
-            $this->setPath($group->getPathPrefix());
+            $this->setUri($group->getUriPrefix());
             $this->addMiddlewares($group->getMiddlewares());
             $this->addMiddlewares($group->getMiddlewares());
         }
-    }
-
-    private function formatPath()
-    {
-
     }
 
     /**
@@ -85,24 +80,24 @@ class Route
     }
 
     /**
-     * Gets the route path.
+     * Gets the route uri.
      *
      * @return string
      */
-    public function getPath(): ?string
+    public function getUri(): ?string
     {
-        return $this->path;
+        return $this->uri;
     }
 
     /**
-     * Sets the route path.
+     * Sets the route uri.
      *
-     * @param string $path
+     * @param string $uri
      * @return Route
      */
-    public function setPath(?string $path): Route
+    public function setUri(?string $uri): Route
     {
-        $this->path = Helper::formatPath($this->path . '/' . $path);
+        $this->uri = Helper::formatUri($this->uri . '/' . $uri);
 
         return $this;
     }
@@ -258,7 +253,7 @@ class Route
         foreach ($placeholders as $name => $type) {
 
             // if the placeholder is marked as optional
-            if (strpos($this->getPath(), '{' . $name . '?}') !== false) {
+            if (strpos($this->getUri(), '{' . $name . '?}') !== false) {
                 $search[]   = '{' . $name . '?}';
                 $replace[]  = '(?<' . $name . '>' . $type . ')?';
             } else {
@@ -267,8 +262,8 @@ class Route
             }
         }
 
-        return $this->setPath(
-            str_replace($search, $replace, $this->getPath())
+        return $this->setUri(
+            str_replace($search, $replace, $this->getUri())
         );
     }
 

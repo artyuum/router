@@ -15,9 +15,9 @@ class RouteGroup
     private $namePrefix;
 
     /**
-     * @var string Should contain the path prefix that will be added to the routes path.
+     * @var string Should contain the uri prefix that will be added to the routes uri.
      */
-    private $pathPrefix;
+    private $uriPrefix;
 
     /**
      * @var array Should contain an array of routes middlewares.
@@ -33,7 +33,7 @@ class RouteGroup
         // if it's a nested group, we get the parent group attributes
         if ($group) {
             $this->setNamePrefix($group->getNamePrefix());
-            $this->setPathPrefix($group->getPathPrefix());
+            $this->setUriPrefix($group->getUriPrefix());
             $this->addMiddlewares($group->getMiddlewares());
         }
     }
@@ -61,24 +61,24 @@ class RouteGroup
     }
 
     /**
-     * Gets the routes path prefix.
+     * Gets the routes uri prefix.
      *
      * @return string
      */
-    public function getPathPrefix(): ?string
+    public function getUriPrefix(): ?string
     {
-        return $this->pathPrefix;
+        return $this->uriPrefix;
     }
 
     /**
-     * Sets the routes path prefix.
+     * Sets the routes uri prefix.
      *
-     * @param string $pathPrefix
+     * @param string $uriPrefix
      * @return RouteGroup
      */
-    public function setPathPrefix(?string $pathPrefix): RouteGroup
+    public function setUriPrefix(?string $uriPrefix): RouteGroup
     {
-        $this->pathPrefix = '/' . $pathPrefix . '/';
+        $this->uriPrefix = '/' . $uriPrefix . '/';
 
         return $this;
     }

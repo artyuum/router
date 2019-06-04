@@ -32,7 +32,7 @@ composer require artyuum/router:dev-master
 * [Route parameters](#Route-parameters)
 * [Named routes](#Named-routes)
 * [Route groups](#Route-groups)
-  * [Route path prefixing](#Route-path-prefixing)
+  * [Route uri prefixing](#Route-uri-prefixing)
   * [Route name prefixing](#Route-name-prefixing)
   * [Route middlewares](#Route-middlewares)
 * [Route mapping](#Route-mapping)
@@ -43,30 +43,30 @@ composer require artyuum/router:dev-master
 The router contains few methods for the most common HTTP methods that will help you to easily register a route:
 
 ```php
-$router->get(string $path, $handler);
-$router->post(string $path, $handler);
-$router->put(string $path, $handler);
-$router->patch(string $path, $handler);
-$router->delete(string $path, $handler);
-$router->options(string $path, $handler);
+$router->get(string $uri, $handler);
+$router->post(string $uri, $handler);
+$router->put(string $uri, $handler);
+$router->patch(string $uri, $handler);
+$router->delete(string $uri, $handler);
+$router->options(string $uri, $handler);
 ```
 
 These are just wrappers around the following method:
 
 ```php
-$router->addRoute(array $methods, string $path, $handler);
+$router->addRoute(array $methods, string $uri, $handler);
 ```
 
 Using the `addRoute()` method, you can register a route that matches more than one HTTP method:  
 
 ```php
-$router->addRoute(['GET', 'POST'], string $path, $handler);
+$router->addRoute(['GET', 'POST'], string $uri, $handler);
 ```
 
 The router doesn't limit your application to the most common HTTP methods. Indeed, you can also register a route that matches a custom HTTP method:
 
 ```php
-$router->addRoute(['BLAH'], string $path, $handler);
+$router->addRoute(['BLAH'], string $uri, $handler);
 ```
 
 The `$handler` argument must be either a callable or an array (if it's a class):
@@ -146,7 +146,7 @@ $url = $router->url('user.delete', ['id' => 1]); // /users/1/delete
 
 You can group routes using the `group()` method. This gives you the ability to set a prefixes or middlewares for all the routes inside the group.
 
-#### Route path prefixing
+#### Route uri prefixing
 
 **Example:**
 
@@ -174,7 +174,7 @@ $router->get('/', $handler); // will match "/"
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
     $group->setNamePrefix('admin.');
-    $router->get(string $path, $handler)->setName('homepage'); // name will be "admin.homepage" 
+    $router->get(string $uri, $handler)->setName('homepage'); // name will be "admin.homepage" 
 });
 ```
 
@@ -190,8 +190,8 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
         'after' => ['LoggingMiddleware::class']
     ]);
 
-    $router->get(string $path, $handler);
-    $router->post(string $path, $handler);
+    $router->get(string $uri, $handler);
+    $router->post(string $uri, $handler);
 });
 ```
 
@@ -218,10 +218,10 @@ These are simply wrappers around the `addMiddlewares()` method.
 
 ### Route mapping
 
-You can map a single path to multiple HTTP methods with differents handler, as follow:
+You can map a single uri to multiple HTTP methods with differents handler, as follow:
 
 ```php
-$router->map('/users/:num')
+$router->map('/users/{id}')
     ->put($handler)
     ->patch($handler)
     ->delete($handler);
@@ -230,7 +230,7 @@ $router->map('/users/:num')
 Using the `withAttributes()` method, you will be able to get access to the Route object in order to set additional attributes to the route:
 
 ```php
-$router->map('/users/:num')
+$router->map('/users/{id}')
     ->put($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.replace')
@@ -256,7 +256,7 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
     $group->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
     $group->setNamePrefix('user.');
 
-    $router->map('/users/:num')
+    $router->map('/users/{id}')
         ->put($handler)->withAttributes(function(\Artyum\Router\Route $route) {
             $route->setName('replace');
          })
@@ -271,7 +271,7 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 
 ### Route not found
 
-By default, when the request doesn't match any registered routes, the `dispatch()` method will throw a "NotFoundException". You can change this behavior by registering an handler. The registered handler will be executed with the same arguments as controllers or middlewares.
+By default, when the request doesn't match any registered routes, the `dispatch()` method will throw a "NotFoundException". You can change this behavior by registering a handler. The registered handler will be executed with the same arguments as controllers or middlewares.
 
 ```php
 setNotFoundHandler($handler);

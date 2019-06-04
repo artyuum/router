@@ -29,9 +29,9 @@ class Router
     ];
 
     /**
-     * @var string Should contain the base path.
+     * @var string Should contain the base uri.
      */
-    private $basePath;
+    private $baseUri;
 
     /**
      * @var RouteGroup Should contain the RouteGroup class instance.
@@ -87,7 +87,7 @@ class Router
                 continue;
             }
 
-            $hasMatched = preg_match_all('#^' . $route->getPath() . '$#', $currentRoute, $matches, PREG_SET_ORDER);
+            $hasMatched = preg_match_all('#^' . $route->getUri() . '$#', $currentRoute, $matches, PREG_SET_ORDER);
 
             // if we found a match
             if ($hasMatched) {
@@ -147,134 +147,134 @@ class Router
     }
 
     /**
-     * Gets the base path.
+     * Gets the base uri.
      *
      * @return string|null
      */
-    public function getBasePath(): ?string
+    public function getBaseUri(): ?string
     {
-        return $this->basePath;
+        return $this->baseUri;
     }
 
     /**
-     * Sets the base path.
+     * Sets the base uri.
      *
-     * @param string $path
+     * @param string $uri
      */
-    public function setBasePath(string $path)
+    public function setBaseUri(string $uri)
     {
-        $this->basePath = '/' . $path . '/';
+        $this->baseUri = '/' . $uri . '/';
     }
 
     /**
      * Registers a "GET" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function get(string $path, $handler): Route
+    public function get(string $uri, $handler): Route
     {
-        return $this->addRoute(['GET'], $path, $handler);
+        return $this->addRoute(['GET'], $uri, $handler);
     }
 
     /**
      * Registers a "POST" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function post(string $path, $handler): Route
+    public function post(string $uri, $handler): Route
     {
-        return $this->addRoute(['POST'], $path, $handler);
+        return $this->addRoute(['POST'], $uri, $handler);
     }
 
     /**
      * Registers a "PUT" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function put(string $path, $handler): Route
+    public function put(string $uri, $handler): Route
     {
-        return $this->addRoute(['PUT'], $path, $handler);
+        return $this->addRoute(['PUT'], $uri, $handler);
     }
 
     /**
      * Registers a "PATCH" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function patch(string $path, $handler): Route
+    public function patch(string $uri, $handler): Route
     {
-        return $this->addRoute(['PATCH'], $path, $handler);
+        return $this->addRoute(['PATCH'], $uri, $handler);
     }
 
     /**
      * Registers a "DELETE" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function delete(string $path, $handler): Route
+    public function delete(string $uri, $handler): Route
     {
-        return $this->addRoute(['DELETE'], $path, $handler);
+        return $this->addRoute(['DELETE'], $uri, $handler);
     }
 
     /**
      * Registers a "OPTIONS" route.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function options(string $path, $handler): Route
+    public function options(string $uri, $handler): Route
     {
-        return $this->addRoute(['OPTIONS'], $path, $handler);
+        return $this->addRoute(['OPTIONS'], $uri, $handler);
     }
 
     /**
      * Registers a route that matches any HTTP methods.
      *
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function any(string $path, $handler): Route
+    public function any(string $uri, $handler): Route
     {
-        return $this->addRoute($this->supportedMethods, $path, $handler);
+        return $this->addRoute($this->supportedMethods, $uri, $handler);
     }
 
     /**
      * Registers a route.
      *
      * @param array $methods
-     * @param string $path
+     * @param string $uri
      * @param $handler
      * @return Route
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
-    public function addRoute(array $methods, string $path, $handler): Route
+    public function addRoute(array $methods, string $uri, $handler): Route
     {
         // converts the HTTP methods to uppercase and validates the HTTP method
         $methods = array_map('strtoupper', $methods);
@@ -282,13 +282,13 @@ class Router
             throw new UnsupportHTTPMethodException();
         }
 
-        // adds the base path to the route path if any
-        $path = $this->basePath . $path;
+        // adds the base uri to the route uri if any
+        $uri = $this->baseUri . $uri;
 
         // creates a new route and store its informations
         $route = new Route($this->group);
         $route
-            ->setPath($path)
+            ->setUri($uri)
             ->setMethods($methods)
             ->setHandler($handler);
 
@@ -301,12 +301,12 @@ class Router
     /**
      * Maps multiple HTTP methods to one route.
      *
-     * @param string $path
+     * @param string $uri
      * @return RouteMapper
      */
-    public function map(string $path): RouteMapper
+    public function map(string $uri): RouteMapper
     {
-        $mapper = new RouteMapper($path, $this);
+        $mapper = new RouteMapper($uri, $this);
 
         return $mapper;
     }
@@ -356,7 +356,7 @@ class Router
     public function dispatch()
     {
         $currentHTTPMethod  = $this->request->getMethod();
-        $currentPath        = Helper::formatPath(($this->request->getPathInfo()));
+        $currentUri         = Helper::formatUri(($this->request->getPathInfo()));
 
         // if there are no routes registered, we throw an exception
         if (empty($this->routes)) {
@@ -364,7 +364,7 @@ class Router
         }
 
         // checks if we have a match
-        $this->matchedRoute = $this->findMatch($currentHTTPMethod, $currentPath);
+        $this->matchedRoute = $this->findMatch($currentHTTPMethod, $currentUri);
 
         // if we don't have a match we execute the not found handler if set, otherwise we throw an exception
         if ($this->matchedRoute === null) {
@@ -436,7 +436,7 @@ class Router
         // loops through all registered routes to find a route matching this name
         foreach ($this->routes as $route) {
             if ($route->getName() === $name) {
-                return $route->getPath();
+                return $route->getUri();
             }
         }
 
