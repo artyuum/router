@@ -10,14 +10,13 @@
 
 * RESTFul router.
 * Shipped with [Symfony Http Foundation](https://symfony.com/components/HttpFoundation).
-* Supports named route parameters & placeholders.
+* Supports named route parameters & placeholders. (WIP)
 * Supports route groups (and nested groups).
-* Supports named routes (with reverse routing).
+* Supports named routes (with reverse routing). (WIP)
 * Supports before & after route middlewares.
 * Supports before & after global middlewares.
 * Supports routes prefixes.
 * Supports route mapping.
-* Supports caching/compiled routes.
 * Supports custom handler for 404.
 
 ### Installation
