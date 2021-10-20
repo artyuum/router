@@ -142,6 +142,11 @@ class Router
         throw new InvalidArgumentException();
     }
 
+    public function getRequest(): Request
+    {
+        return $this->request;
+    }
+
     /**
      * Gets the base uri.
      */
