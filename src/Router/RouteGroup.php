@@ -3,29 +3,28 @@
 namespace Artyum\Router;
 
 /**
- * Class RouteGroup
- * @package Artyum\Router
+ * Class RouteGroup.
  */
 class RouteGroup
 {
-
     /**
-     * @var string Should contain the name prefix that will be added to the routes name.
+     * @var string should contain the name prefix that will be added to the routes name
      */
     private $namePrefix;
 
     /**
-     * @var string Should contain the uri prefix that will be added to the routes uri.
+     * @var string should contain the uri prefix that will be added to the routes uri
      */
     private $uriPrefix;
 
     /**
-     * @var array Should contain an array of routes middlewares.
+     * @var array should contain an array of routes middlewares
      */
     private $middlewares;
 
     /**
      * RouteGroup constructor.
+     *
      * @param RouteGroup $group
      */
     public function __construct(RouteGroup $group = null)
@@ -50,13 +49,11 @@ class RouteGroup
 
     /**
      * Sets the routes name prefix.
-     *
-     * @param string $namePrefix
-     * @return RouteGroup
      */
     public function setNamePrefix(string $namePrefix): RouteGroup
     {
         $this->namePrefix = $namePrefix;
+
         return $this;
     }
 
@@ -74,7 +71,6 @@ class RouteGroup
      * Sets the routes uri prefix.
      *
      * @param string $uriPrefix
-     * @return RouteGroup
      */
     public function setUriPrefix(?string $uriPrefix): RouteGroup
     {
@@ -97,7 +93,6 @@ class RouteGroup
      * Sets the routes middlewares.
      *
      * @param array $middlewares
-     * @return RouteGroup
      */
     public function addMiddlewares(?array $middlewares): RouteGroup
     {
@@ -112,28 +107,21 @@ class RouteGroup
 
     /**
      * Sets the before routes middlewares.
-     *
-     * @param array $middlewares
-     * @return RouteGroup
      */
     public function addBeforeMiddlewares(array $middlewares): RouteGroup
     {
         return $this->addMiddlewares([
-            'before' => $middlewares
+            'before' => $middlewares,
         ]);
     }
 
     /**
      * Sets the after routes middlewares.
-     *
-     * @param array $middlewares
-     * @return RouteGroup
      */
     public function addAfterMiddlewares(array $middlewares): RouteGroup
     {
         return $this->addMiddlewares([
-            'after' => $middlewares
+            'after' => $middlewares,
         ]);
     }
-
 }

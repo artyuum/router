@@ -2,22 +2,20 @@
 
 namespace Artyum\Router;
 
+use Artyum\Router\Exceptions\InvalidArgumentException;
 use Artyum\Router\Exceptions\NoRoutesRegistered;
 use Artyum\Router\Exceptions\NotFoundException;
 use Artyum\Router\Exceptions\UnsupportHTTPMethodException;
-use Artyum\Router\Exceptions\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class Router
- * @package Artyum\Router
+ * Class Router.
  */
 class Router
 {
-
     /**
-     * @var array Should contain an array of HTTP methods supported by the router.
+     * @var array should contain an array of HTTP methods supported by the router
      */
     private $supportedMethods = [
         'GET',
@@ -25,65 +23,62 @@ class Router
         'PUT',
         'PATCH',
         'DELETE',
-        'OPTIONS'
+        'OPTIONS',
     ];
 
     /**
-     * @var string Should contain the base uri.
+     * @var string should contain the base uri
      */
     private $baseUri;
 
     /**
-     * @var RouteGroup Should contain the RouteGroup class instance.
+     * @var RouteGroup should contain the RouteGroup class instance
      */
     private $group;
 
     /**
-     * @var Route[] Should contain an array of all registered routes.
+     * @var Route[] should contain an array of all registered routes
      */
     public $routes;
 
     /**
-     * @var string|callable Should contain the handler to execute when no route has been matched.
+     * @var string|callable should contain the handler to execute when no route has been matched
      */
     private $notFoundHandler;
 
     /**
-     * @var Route Should contain the route that matched the current request.
+     * @var Route should contain the route that matched the current request
      */
     private $matchedRoute;
 
     /**
-     * @var Request Should contain the Symfony Http Request class instance.
+     * @var Request should contain the Symfony Http Request class instance
      */
     private $request;
 
     /**
-     * @var Response Should contain the Symfony Http Response class instance.
+     * @var Response should contain the Symfony Http Response class instance
      */
     private $response;
 
     /**
      * Router constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         $this->request = Request::createFromGlobals();
         $this->response = new Response();
     }
 
     /**
      * Checks if the given http method & route matche one of the registered routes.
-     *
-     * @param string $currentMethod
-     * @param string $currentRoute
-     * @return Route|null
      */
     private function findMatch(string $currentMethod, string $currentRoute): ?Route
     {
         // loops through all registered routes and search for a match
         foreach ($this->routes as $route) {
             // checks if the current HTTP method corresponds to the registered HTTP method for this route
-            if (!in_array($currentMethod, $route->getMethods())) {
+            if (!in_array($currentMethod, $route->getMethods(), true)) {
                 continue;
             }
 
@@ -124,8 +119,10 @@ class Router
      * Invokes the handler.
      *
      * @param callable|array $handler
-     * @return mixed
+     *
      * @throws InvalidArgumentException
+     *
+     * @return mixed
      */
     private function invoke($handler)
     {
@@ -147,8 +144,6 @@ class Router
 
     /**
      * Gets the base uri.
-     *
-     * @return string|null
      */
     public function getBaseUri(): ?string
     {
@@ -157,8 +152,6 @@ class Router
 
     /**
      * Sets the base uri.
-     *
-     * @param string $uri
      */
     public function setBaseUri(string $uri)
     {
@@ -168,9 +161,8 @@ class Router
     /**
      * Registers a "GET" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -182,9 +174,8 @@ class Router
     /**
      * Registers a "POST" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -196,9 +187,8 @@ class Router
     /**
      * Registers a "PUT" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -210,9 +200,8 @@ class Router
     /**
      * Registers a "PATCH" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -224,9 +213,8 @@ class Router
     /**
      * Registers a "DELETE" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -238,9 +226,8 @@ class Router
     /**
      * Registers a "OPTIONS" route.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -252,9 +239,8 @@ class Router
     /**
      * Registers a route that matches any HTTP methods.
      *
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -266,10 +252,8 @@ class Router
     /**
      * Registers a route.
      *
-     * @param array $methods
-     * @param string $uri
      * @param $handler
-     * @return Route
+     *
      * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
@@ -299,9 +283,6 @@ class Router
 
     /**
      * Maps multiple HTTP methods to one route.
-     *
-     * @param string $uri
-     * @return RouteMapper
      */
     public function map(string $uri): RouteMapper
     {
@@ -310,8 +291,6 @@ class Router
 
     /**
      * Groups routes used to set prefix, middlewares or namespace.
-     *
-     * @param callable $handler
      */
     public function group(callable $handler)
     {
@@ -332,6 +311,7 @@ class Router
      * Sets the handler to execute when no route has been matched.
      *
      * @param $handler
+     *
      * @throws InvalidArgumentException
      */
     public function setNotFoundHandler($handler)
@@ -345,10 +325,11 @@ class Router
     /**
      * Catches current route/method and runs the defined handler, otherwise returns the notFound() method.
      *
-     * @return mixed
      * @throws NotFoundException
      * @throws NoRoutesRegistered
      * @throws InvalidArgumentException
+     *
+     * @return mixed
      */
     public function dispatch()
     {
@@ -367,9 +348,8 @@ class Router
         if ($this->matchedRoute === null) {
             if ($this->notFoundHandler) {
                 return $this->invoke($this->notFoundHandler);
-            } else {
-                throw new NotFoundException();
             }
+            throw new NotFoundException();
         }
 
         // we have a match so save the matched route parameters in the Request object
@@ -432,5 +412,4 @@ class Router
         // no route found
         return null;
     }
-
 }

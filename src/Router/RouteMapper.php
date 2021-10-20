@@ -3,26 +3,22 @@
 namespace Artyum\Router;
 
 /**
- * Class RouteMapper
- * @package Artyum\Router
+ * Class RouteMapper.
  */
 class RouteMapper
 {
-
     /**
-     * @var string Should contain the uri to match for the routes.
+     * @var string should contain the uri to match for the routes
      */
     private $uri;
 
     /**
-     * @var Router Should contain the Router class instance.
+     * @var Router should contain the Router class instance
      */
     private $router;
 
     /**
      * RouteMapper constructor.
-     * @param string $uri
-     * @param Router $router
      */
     public function __construct(string $uri, Router $router)
     {
@@ -34,7 +30,7 @@ class RouteMapper
      * Registers a "GET" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -49,7 +45,7 @@ class RouteMapper
      * Registers a "POST" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -64,7 +60,7 @@ class RouteMapper
      * Registers a "PUT" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -79,7 +75,7 @@ class RouteMapper
      * Registers a "PATCH" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -94,7 +90,7 @@ class RouteMapper
      * Registers a "DELETE" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -109,7 +105,7 @@ class RouteMapper
      * Registers a "OPTIONS" route.
      *
      * @param $handler
-     * @return RouteMapper
+     *
      * @throws Exceptions\UnsupportHTTPMethodException
      * @throws Exceptions\InvalidArgumentException
      */
@@ -122,9 +118,6 @@ class RouteMapper
 
     /**
      * Gets the last registered Route object.
-     *
-     * @param callable $callback
-     * @return RouteMapper
      */
     public function addAttributes(callable $callback): RouteMapper
     {
@@ -137,5 +130,4 @@ class RouteMapper
 
         return $this;
     }
-
 }

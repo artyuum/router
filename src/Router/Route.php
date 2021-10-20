@@ -5,44 +5,43 @@ namespace Artyum\Router;
 use Artyum\Router\Exceptions\InvalidArgumentException;
 
 /**
- * Class Route
- * @package Artyum\Router
+ * Class Route.
  */
 class Route
 {
-
     /**
-     * @var string Should contain the name of the route.
+     * @var string should contain the name of the route
      */
     private $name;
 
     /**
-     * @var string Should contain the route uri.
+     * @var string should contain the route uri
      */
     private $uri;
 
     /**
-     * @var array Should contain an array of HTTP methods supported by this route.
+     * @var array should contain an array of HTTP methods supported by this route
      */
     private $methods;
 
     /**
-     * @var string|callable Should contain the route handler.
+     * @var string|callable should contain the route handler
      */
     private $handler;
 
     /**
-     * @var array Should contain an array of route middlewares.
+     * @var array should contain an array of route middlewares
      */
     private $middlewares;
 
     /**
-     * @var array Should contain an array of parameters that will be populated when this route matches the current request and contains parameters.
+     * @var array should contain an array of parameters that will be populated when this route matches the current request and contains parameters
      */
     private $parameters;
 
     /**
      * Route constructor.
+     *
      * @param RouteGroup $group
      */
     public function __construct(?RouteGroup $group)
@@ -70,7 +69,6 @@ class Route
      * Sets the route name.
      *
      * @param string $name
-     * @return Route
      */
     public function setName(?string $name): Route
     {
@@ -93,7 +91,6 @@ class Route
      * Sets the route uri.
      *
      * @param string $uri
-     * @return Route
      */
     public function setUri(?string $uri): Route
     {
@@ -114,9 +111,6 @@ class Route
 
     /**
      * Sets the route method.
-     *
-     * @param array $methods
-     * @return Route
      */
     public function setMethods(array $methods): Route
     {
@@ -139,7 +133,7 @@ class Route
      * Sets the route handler.
      *
      * @param mixed $handler
-     * @return Route
+     *
      * @throws InvalidArgumentException
      */
     public function setHandler($handler): Route
@@ -168,7 +162,6 @@ class Route
      * Sets the route middlewares.
      *
      * @param array $middlewares
-     * @return Route
      */
     public function addMiddlewares(?array $middlewares): Route
     {
@@ -183,9 +176,6 @@ class Route
 
     /**
      * Sets the before route middlewares.
-     *
-     * @param array $middlewares
-     * @return Route
      */
     public function addBeforeMiddlewares(array $middlewares): Route
     {
@@ -200,9 +190,6 @@ class Route
 
     /**
      * Sets the after route middlewares.
-     *
-     * @param array $middlewares
-     * @return Route
      */
     public function addAfterMiddlewares(array $middlewares): Route
     {
@@ -229,7 +216,6 @@ class Route
      * Sets the route parameters.
      *
      * @param array $parameters
-     * @return Route
      */
     public function setParameters(?array $parameters): Route
     {
@@ -240,9 +226,6 @@ class Route
 
     /**
      * Adds contraints on placeholders.
-     *
-     * @param array $placeholders
-     * @return Route
      */
     public function where(array $placeholders): Route
     {
@@ -251,14 +234,13 @@ class Route
 
         // loops through all parameters and stores their name & type
         foreach ($placeholders as $name => $type) {
-
             // if the placeholder is marked as optional
             if (strpos($this->getUri(), '{' . $name . '?}') !== false) {
-                $search[]   = '{' . $name . '?}';
-                $replace[]  = '(?<' . $name . '>' . $type . ')?';
+                $search[] = '{' . $name . '?}';
+                $replace[] = '(?<' . $name . '>' . $type . ')?';
             } else {
-                $search[]   = '{' . $name . '}';
-                $replace[]  = '(?<' . $name . '>' . $type . ')';
+                $search[] = '{' . $name . '}';
+                $replace[] = '(?<' . $name . '>' . $type . ')';
             }
         }
 
@@ -266,5 +248,4 @@ class Route
             str_replace($search, $replace, $this->getUri())
         );
     }
-
 }

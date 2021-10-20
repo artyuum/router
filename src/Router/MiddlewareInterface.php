@@ -3,12 +3,9 @@
 namespace Artyum\Router;
 
 /**
- * Interface MiddlewareInterface
- * @package Artyum
+ * Interface MiddlewareInterface.
  */
 interface MiddlewareInterface
 {
-
     public function handle();
-
 }
