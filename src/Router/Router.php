@@ -80,7 +80,7 @@ class Router
      */
     private function findMatch(string $currentMethod, string $currentRoute): ?Route
     {
-        // loops though all registered routes and search for a match
+        // loops through all registered routes and search for a match
         foreach ($this->routes as $route) {
             // checks if the current HTTP method corresponds to the registered HTTP method for this route
             if (!in_array($currentMethod, $route->getMethods())) {
@@ -91,7 +91,6 @@ class Router
 
             // if we found a match
             if ($hasMatched) {
-
                 // checks if we have parameters
                 if (!empty($matches)) {
                     $parameters = [];
@@ -285,12 +284,12 @@ class Router
         // adds the base uri to the route uri if any
         $uri = $this->baseUri . $uri;
 
-        // creates a new route and store its informations
-        $route = new Route($this->group);
-        $route
+        // creates a new route and store its information
+        $route = (new Route($this->group))
             ->setUri($uri)
             ->setMethods($methods)
-            ->setHandler($handler);
+            ->setHandler($handler)
+        ;
 
         // stores the newly created route into an array of Route
         $this->routes[] = $route;
@@ -306,9 +305,7 @@ class Router
      */
     public function map(string $uri): RouteMapper
     {
-        $mapper = new RouteMapper($uri, $this);
-
-        return $mapper;
+        return new RouteMapper($uri, $this);
     }
 
     /**
@@ -355,8 +352,8 @@ class Router
      */
     public function dispatch()
     {
-        $currentHTTPMethod  = $this->request->getMethod();
-        $currentUri         = Helper::formatUri(($this->request->getPathInfo()));
+        $currentHTTPMethod = $this->request->getMethod();
+        $currentUri = Helper::formatUri(($this->request->getPathInfo()));
 
         // if there are no routes registered, we throw an exception
         if (empty($this->routes)) {
@@ -406,8 +403,6 @@ class Router
 
     /**
      * Gets all registered routes.
-     *
-     * @return array
      */
     public function getRegisteredRoutes(): ?array
     {
@@ -416,8 +411,6 @@ class Router
 
     /**
      * Gets the matched route.
-     *
-     * @return Route
      */
     public function getMatchedRoute(): ?Route
     {
@@ -426,10 +419,6 @@ class Router
 
     /**
      * Builds an URL from the route name.
-     *
-     * @param string $name
-     * @param array $parameters
-     * @return string
      */
     public function url(string $name, array $parameters = null): ?string
     {
