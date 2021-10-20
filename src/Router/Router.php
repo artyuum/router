@@ -163,7 +163,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function get(string $uri, $handler): Route
@@ -176,7 +175,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function post(string $uri, $handler): Route
@@ -189,7 +187,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function put(string $uri, $handler): Route
@@ -202,7 +199,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function patch(string $uri, $handler): Route
@@ -215,7 +211,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function delete(string $uri, $handler): Route
@@ -228,7 +223,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function options(string $uri, $handler): Route
@@ -241,7 +235,6 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function any(string $uri, $handler): Route
@@ -254,16 +247,12 @@ class Router
      *
      * @param $handler
      *
-     * @throws UnsupportHTTPMethodException
      * @throws InvalidArgumentException
      */
     public function addRoute(array $methods, string $uri, $handler): Route
     {
         // converts the HTTP methods to uppercase and validates the HTTP method
         $methods = array_map('strtoupper', $methods);
-        if (array_diff($methods, $this->supportedMethods)) {
-            throw new UnsupportHTTPMethodException();
-        }
 
         // adds the base uri to the route uri if any
         $uri = $this->baseUri . $uri;
