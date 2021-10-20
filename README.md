@@ -10,9 +10,9 @@
 
 * RESTFul router.
 * Shipped with [Symfony Http Foundation](https://symfony.com/components/HttpFoundation).
-* Supports named route parameters & placeholders. (WIP)
+* Supports named route parameters & placeholders. **(WIP)**
 * Supports route groups (and nested groups).
-* Supports named routes (with reverse routing). (WIP)
+* Supports named routes (with reverse routing). **(WIP)**
 * Supports before & after route middlewares.
 * Supports before & after global middlewares.
 * Supports routes prefixes.
@@ -80,7 +80,7 @@ $router->get('/', function(\Symfony\Component\HttpFoundation\Request $request, \
 $router->get('/', 'myFunction');
 
 // using an array (if it's a class)
-$router->get('/', ['HomepageController::class', 'index']);
+$router->get('/', [HomepageController::class, 'index']);
 ```
 
 Once a request matches one of the registered routes, the router will execute the handler and passes two arguments in the following order :
@@ -89,7 +89,7 @@ Once a request matches one of the registered routes, the router will execute the
 
 2. `Symfony\Component\HttpFoundation\Response $response`
 
-These arguments are part of the [Symfony HTTP Foundation](https://symfony.com/components/HttpFoundation) component and will help you to get more informations about the request and easily build and send a response to the client. Feel free to [read the docs](https://symfony.com/components/HttpFoundation) to get more informations about its usage.
+These arguments are part of the [Symfony HTTP Foundation](https://symfony.com/components/HttpFoundation) component and will help you to get more information about the request and easily build and send a response to the client. Feel free to [read the docs](https://symfony.com/components/HttpFoundation) to get more information about its usage.
 
 #### Route parameters
 
@@ -185,8 +185,8 @@ $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
     $group->addMiddlewares([
-        'before' => ['RateLimitMiddleware::class', 'AuthMiddleware::class'],
-        'after' => ['LoggingMiddleware::class']
+        'before' => [RateLimitMiddleware::class, AuthMiddleware::class],
+        'after' => [LoggingMiddleware::class]
     ]);
 
     $router->get(string $uri, $handler);
@@ -208,8 +208,8 @@ You can also add before/after route middlewares to a group as follow:
 ```php
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
-    $group->setBeforeMiddlewares(['RateLimitMiddleware::class', 'AuthMiddleware::class']);
-    $group->setAfterMiddlewares(['LoggingMiddleware::class']);
+    $group->setBeforeMiddlewares([RateLimitMiddleware::class, AuthMiddleware::class]);
+    $group->setAfterMiddlewares([LoggingMiddleware::class]);
 });
 ```
 
@@ -233,17 +233,17 @@ $router->map('/users/{id}')
     ->put($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.replace')
-            ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
+            ->setBeforeMiddlewares([RateLimitMiddleware::class, RolesMiddleware::class]);
      })
     ->patch($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.update')
-            ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
+            ->setBeforeMiddlewares([RateLimitMiddleware::class, RolesMiddleware::class]);
     })
     ->delete($handler)->withAttributes(function(\Artyum\Router\Route $route) {
         $route
             ->setName('user.delete')
-            ->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
+            ->setBeforeMiddlewares([RateLimitMiddleware::class, RolesMiddleware::class]);
     });
 ```
 
@@ -252,7 +252,7 @@ It's also possible to add mapped routes to a group, that way you can set the mid
 ```php
 $router->group(function(\Artyum\Router\RouteGroup $group) use ($router)
 {
-    $group->setBeforeMiddlewares(['RateLimitMiddleware::class', 'RolesMiddleware::class']);
+    $group->setBeforeMiddlewares([RateLimitMiddleware::class, RolesMiddleware::class]);
     $group->setNamePrefix('user.');
 
     $router->map('/users/{id}')
