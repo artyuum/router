@@ -57,17 +57,11 @@ class Router
     private $request;
 
     /**
-     * @var Response should contain the Symfony Http Response class instance
-     */
-    private $response;
-
-    /**
      * Router constructor.
      */
     public function __construct()
     {
         $this->request = Request::createFromGlobals();
-        $this->response = new Response();
     }
 
     /**
@@ -128,7 +122,7 @@ class Router
     {
         // if the first argument is not an array and is an anonymous function or a function name
         if (!is_array($handler) && is_callable($handler)) {
-            return call_user_func($handler, $this->request, $this->response);
+            return call_user_func($handler, $this->request);
         }
 
         // if it's a class
@@ -136,7 +130,7 @@ class Router
             $class = $handler[0];
             $method = $handler[1];
 
-            return call_user_func([new $class(), $method], $this->request, $this->response);
+            return call_user_func([new $class(), $method], $this->request);
         }
 
         throw new InvalidArgumentException();
